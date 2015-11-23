@@ -39,18 +39,15 @@ def overflow():
 
     resp_qs = ['Stack Overflow Top Questions for "%s"\n' % text]
     # Perform google search
-    #  Filter searches for only questions, and "-tagged" removes
-    #   /questions/tagged entries for us, which should leave actual
-    #   question links for most results
     sr = search(
-        "site:stackoverflow.com/questions/* -tagged {}".format(text),
+        "site:stackoverflow.com/questions/* {}".format(text),
         pages=pages
     )
     # Extract each question nid from results
     so_qnids = []
     for result in sr:
         purl = urlparse(result.link)
-        assert purl.netloc == 'stackoverflow.com', \
+        assert purl.netloc.endswith('stackoverflow.com'), \
             "Non-StackOverflow result {}; search is broken!"\
             .format(result.link)
         qnid = get_question_nid(question_regex.match(purl.path))
