@@ -1,2 +1,4 @@
 flask==0.10.1
 py-stackexchange==2.2.004
+click
+Google-Search-API

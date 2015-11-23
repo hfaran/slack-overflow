@@ -24,7 +24,9 @@ From any Slack channel, just type `/overflow [search terms]`. The questions will
 
 ## Developing
 
-Add a `config.py` file based on `config.py.example` file. Grab your StackExchange key from http://stackapps.com/
+* Grab your StackExchange key from http://stackapps.com/
+* Provide the key by either setting the `SE_KEY` environment variable or
+`--se-key` option
 
 ```python
 # Install python dependencies
@@ -32,6 +34,9 @@ $ pip install -r requirements.txt
 
 # Start the server
 $ python app.py
+
+# For more options:
+$ python app.py --help
 ```
 
 ## Deploy to Heroku
