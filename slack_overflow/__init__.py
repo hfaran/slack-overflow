@@ -3,7 +3,6 @@ from urlparse import urlparse
 
 import flask
 from flask import Flask, request, Response, redirect
-from stackexchange import Sort, DESC
 
 from slack_overflow.google_search import search
 
@@ -21,42 +20,41 @@ def overflow():
     Example:
         /overflow python list comprehension
     '''
-    max_questions = flask._app_ctx_stack.max_questions
-    so = flask._app_ctx_stack.so
-    text = request.values.get('text')
-
-    # try:
-    #     qs = so.search(intitle=text, sort=Sort.Votes, order=DESC)
-    # except UnicodeEncodeError:
-    #     return Response(('Only English language is supported. '
-    #                      '%s is not valid input.' % text),
-    #                      content_type='text/plain; charset=utf-8')
-    #
-    #
-    resp_qs = ['Stack Overflow Top Questions for "%s"\n' % text]
-    # resp_qs.extend(map(get_response_string, qs[:max_questions]))
-    #
-    # if len(resp_qs) is 1:
-    #     resp_qs.append(('No questions found. Please try a broader search or '
-    #                     'search directly on '
-    #                     '<https://stackoverflow.com|StackOverflow>.'))
     question_regex = re.compile('^/questions/(\d+)/')
+
     def get_question_nid(match):
+        """Returns the Question ID given a match from the URL"""
         if match is None:
             return None
         return int(match.groups()[0])
 
-    so_qs = []
+    # Get objects on the application context pushed on startup
+    max_questions = flask._app_ctx_stack.max_questions
+    so = flask._app_ctx_stack.so
+    # Each page in the google search has ten entries
     pages = max_questions//10 + 1
-    sr = search("site:stackoverflow.com/questions {}".format(text), pages=pages)
+
+    text = request.values.get('text')
+
+    resp_qs = ['Stack Overflow Top Questions for "%s"\n' % text]
+    # Perform google search
+    sr = search(
+        "site:stackoverflow.com/questions {}".format(text),
+        pages=pages
+    )
+    # Fetch each Question from result using SO API
+    so_qs = []
     for result in sr:
         purl = urlparse(result.link)
-        print purl
-        assert purl.netloc == 'stackoverflow.com', "Non-StackOverflow result; search is broken!"
+        assert purl.netloc == 'stackoverflow.com', \
+            "Non-StackOverflow result; search is broken!"
         qnid = get_question_nid(question_regex.match(purl.path))
-        if qnid is not None:
-            so_qs.append(so.question(qnid))
+        assert qnid is not None, \
+            "Filter should only allow questions; it is broken"
+        so_qs.append(so.question(qnid))
+    # Sort Questions by score
     so_qs = sorted(so_qs, key=lambda q: q.score, reverse=True)
+    # Build Slack response for each question
     resp_qs.extend(map(get_response_string, so_qs[:max_questions]))
 
     return Response('\n'.join(resp_qs),
