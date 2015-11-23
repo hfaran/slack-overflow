@@ -1,3 +1,4 @@
+import logging
 import re
 from urlparse import urlparse
 
@@ -38,20 +39,28 @@ def overflow():
 
     resp_qs = ['Stack Overflow Top Questions for "%s"\n' % text]
     # Perform google search
+    #  Filter searches for only questions, and "-tagged" removes
+    #   /questions/tagged entries for us, which should leave actual
+    #   question links for most results
     sr = search(
-        "site:stackoverflow.com/questions {}".format(text),
+        "site:stackoverflow.com/questions/* -tagged {}".format(text),
         pages=pages
     )
-    # Fetch each Question from result using SO API
-    so_qs = []
+    # Extract each question nid from results
+    so_qnids = []
     for result in sr:
         purl = urlparse(result.link)
         assert purl.netloc == 'stackoverflow.com', \
-            "Non-StackOverflow result; search is broken!"
+            "Non-StackOverflow result {}; search is broken!"\
+            .format(result.link)
         qnid = get_question_nid(question_regex.match(purl.path))
-        assert qnid is not None, \
-            "Filter should only allow questions; it is broken"
-        so_qs.append(so.question(qnid))
+        if qnid is not None:
+            so_qnids.append(qnid)
+        else:
+            logging.warning("Found invalid URL in search: "
+                            "{}".format(result.link))
+    # Fetch Questions using SO API
+    so_qs = so.questions(so_qnids)
     # Sort Questions by score
     so_qs = sorted(so_qs, key=lambda q: q.score, reverse=True)
     # Build Slack response for each question
