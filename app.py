@@ -2,6 +2,7 @@
 
 import os
 
+import click
 from flask import Flask, request, Response, redirect
 from stackexchange import Site, StackOverflow, Sort, DESC
 
@@ -22,7 +23,10 @@ MAX_QUESTIONS = 5
 
 
 app = Flask(__name__)
-so = Site(StackOverflow, se_key)
+so = Site(
+    StackOverflow,
+    se_key
+)
 
 
 def get_response_string(q):
@@ -65,6 +69,24 @@ def hello():
     return redirect('https://github.com/karan/slack-overflow')
 
 
+def envvar(name, default):
+    """Create callable environment variable getter
+
+    :param str name: Name of environment variable
+    :param default: Default value to return in case it isn't defined
+    """
+    return lambda: os.environ.get(name, default)
+
+
+@click.command()
+@click.option('-p', '--port', default=envvar('PORT', '5000'),
+              type=click.INT)
+def main(port):
+    app.run(
+        host='0.0.0.0',
+        port=port
+    )
+
+
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    main()
