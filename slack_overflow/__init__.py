@@ -1,11 +1,10 @@
 import logging
-import re
-from urlparse import urlparse
 
 import flask
 from flask import Flask, request, Response, redirect
 
-from slack_overflow.google_search import search
+from slack_overflow.so import extract_question_nid_from_url
+from slack_overflow.so import google_search_stackoverflow_query
 
 
 app = Flask(__name__)
@@ -21,14 +20,6 @@ def overflow():
     Example:
         /overflow python list comprehension
     '''
-    question_regex = re.compile('^/questions/(\d+)/')
-
-    def get_question_nid(match):
-        """Returns the Question ID given a match from the URL"""
-        if match is None:
-            return None
-        return int(match.groups()[0])
-
     # Get objects on the application context pushed on startup
     max_questions = flask._app_ctx_stack.max_questions
     so = flask._app_ctx_stack.so
@@ -39,18 +30,11 @@ def overflow():
 
     resp_qs = ['Stack Overflow Top Questions for "%s"\n' % text]
     # Perform google search
-    sr = search(
-        "site:stackoverflow.com/questions/* {}".format(text),
-        pages=pages
-    )
+    sr = google_search_stackoverflow_query(text, pages=pages)
     # Extract each question nid from results
     so_qnids = []
     for result in sr:
-        purl = urlparse(result.link)
-        assert purl.netloc.endswith('stackoverflow.com'), \
-            "Non-StackOverflow result {}; search is broken!"\
-            .format(result.link)
-        qnid = get_question_nid(question_regex.match(purl.path))
+        qnid = extract_question_nid_from_url(result.link)
         if qnid is not None:
             so_qnids.append(qnid)
         else:
