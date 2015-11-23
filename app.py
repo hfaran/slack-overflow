@@ -3,30 +3,12 @@
 import os
 
 import click
+import flask
 from flask import Flask, request, Response, redirect
 from stackexchange import Site, StackOverflow, Sort, DESC
 
-try:
-    import config
-    se_key = config.stackexchange['api_key']
-except:
-    se_key = os.environ.get('SE_KEY')
-
-
-if not se_key:
-    import sys
-    print 'No config.py file found. Exiting...'
-    sys.exit(0)
-
-
-MAX_QUESTIONS = 5
-
 
 app = Flask(__name__)
-so = Site(
-    StackOverflow,
-    se_key
-)
 
 
 def get_response_string(q):
@@ -42,6 +24,8 @@ def overflow():
     Example:
         /overflow python list comprehension
     '''
+    max_questions = flask._app_ctx_stack.max_questions
+    so = flask._app_ctx_stack.so
     text = request.values.get('text')
 
     try:
@@ -53,7 +37,7 @@ def overflow():
 
 
     resp_qs = ['Stack Overflow Top Questions for "%s"\n' % text]
-    resp_qs.extend(map(get_response_string, qs[:MAX_QUESTIONS]))
+    resp_qs.extend(map(get_response_string, qs[:max_questions]))
 
     if len(resp_qs) is 1:
         resp_qs.append(('No questions found. Please try a broader search or '
@@ -81,7 +65,27 @@ def envvar(name, default):
 @click.command()
 @click.option('-p', '--port', default=envvar('PORT', '5000'),
               type=click.INT)
-def main(port):
+@click.option('-m', '--max-questions', default=envvar('MAX_QUESTIONS', '5'),
+              type=click.INT)
+@click.option('--se-key', default=envvar('SE_KEY', ''),
+              type=click.STRING)
+@click.option('--debug', is_flag=True,
+              default=lambda: os.environ.get('FLASK_DEBUG') == '1')
+def main(port, max_questions, se_key, debug):
+    so = Site(
+        domain=StackOverflow,
+        app_key=se_key if se_key else None
+    )
+
+    app.debug = debug
+    if app.debug:
+        print("WARNING: DEBUG MODE IS ENABLED!")
+    app.config["PROPAGATE_EXCEPTIONS"] = True
+
+    top = flask._app_ctx_stack
+    top.so = so
+    top.max_questions = max_questions
+
     app.run(
         host='0.0.0.0',
         port=port
