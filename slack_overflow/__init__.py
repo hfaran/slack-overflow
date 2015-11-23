@@ -43,17 +43,19 @@ def soi():
     # Sort Questions by score
     so_qs = sorted(so_qs, key=lambda q: q.score, reverse=True)
 
-    answer_body = get_question_top_answer_body(so=so, question=so_qs[0])
-    if answer_body is None:
-        return "The top question for your query is unanswered!"
-    # # Build Slack response for each question
-    # resp_qs.extend(map(get_response_string, so_qs[:max_questions]))
+    top_question = so_qs[0]
+    answer_body = get_question_top_answer_body(so=so, question=top_question)
+    question_str = get_response_string(top_question)
 
-    # return Response('\n'.join(resp_qs),
-    #                 content_type='text/plain; charset=utf-8')
-    print(unicode(answer_body))
-    print(html2slack(answer_body))
-    return Response("\n\n\n".join([answer_body, html2slack(answer_body)]),
+    resp_list = [question_str]
+    if answer_body is None:
+        resp_list.append("\n\n*The top question for your query is unanswered! "
+                         ":(*")
+    else:
+        resp_list.append("\n\n")
+        resp_list.append(html2slack(answer_body))
+
+    return Response("".join(resp_list),
                     content_type='text/plain; charset=utf-8')
 
 
