@@ -19,6 +19,11 @@ app = Flask(__name__)
 @app.route('/soi', methods=['post'])
 def soi():
     '''
+    Displays Slack-formatted most-upvoted answer of the most upvoted
+    question from the query.
+
+    soi ~ StackOverflow-Inline
+
     Example:
         /soi python list comprehension
     '''
