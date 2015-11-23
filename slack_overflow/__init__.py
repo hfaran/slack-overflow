@@ -38,6 +38,8 @@ def soi():
         else:
             logging.warning("Found invalid URL in search: "
                             "{}".format(result.link))
+    if not so_qnids:
+        return "*No questions for the given query were found! :(*"
     # Fetch Questions using SO API
     so_qs = so.questions(so_qnids)
     # Sort Questions by score
@@ -85,6 +87,8 @@ def overflow():
         else:
             logging.warning("Found invalid URL in search: "
                             "{}".format(result.link))
+    if not so_qnids:
+        return "*No questions for the given query were found! :(*"
     # Fetch Questions using SO API
     so_qs = so.questions(so_qnids)
     # Sort Questions by score
