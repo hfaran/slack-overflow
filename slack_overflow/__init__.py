@@ -1,11 +1,12 @@
 import logging
-import re
-from urlparse import urlparse
 
 import flask
 from flask import Flask, request, Response, redirect
 
-from slack_overflow.google_search import search
+from slack_overflow.stackoverflow import extract_question_nid_from_url
+from slack_overflow.stackoverflow import google_search_stackoverflow_query
+from slack_overflow.stackoverflow import get_question_top_answer_body
+from slack_overflow.html2slack import html2slack
 
 
 app = Flask(__name__)
@@ -15,20 +16,62 @@ app = Flask(__name__)
 # Handlers #
 ############
 
+@app.route('/soi', methods=['post'])
+def soi():
+    '''
+    Displays Slack-formatted most-upvoted answer of the most upvoted
+    question from the query.
+
+    soi ~ StackOverflow-Inline
+
+    Example:
+        /soi python list comprehension
+    '''
+    # Get objects on the application context pushed on startup
+    so = flask._app_ctx_stack.so
+
+    text = request.values.get('text')
+
+    # Perform google search
+    sr = google_search_stackoverflow_query(text, pages=1)
+    # Extract each question nid from results
+    so_qnids = []
+    for result in sr:
+        qnid = extract_question_nid_from_url(result.link)
+        if qnid is not None:
+            so_qnids.append(qnid)
+        else:
+            logging.warning("Found invalid URL in search: "
+                            "{}".format(result.link))
+    if not so_qnids:
+        return "*No questions for the given query were found! :(*"
+    # Fetch Questions using SO API
+    so_qs = so.questions(so_qnids)
+    # Sort Questions by score
+    so_qs = sorted(so_qs, key=lambda q: q.score, reverse=True)
+
+    top_question = so_qs[0]
+    answer_body = get_question_top_answer_body(so=so, question=top_question)
+    question_str = get_response_string(top_question)
+
+    resp_list = [question_str]
+    if answer_body is None:
+        resp_list.append("\n\n*The top question for your query is unanswered! "
+                         ":(*")
+    else:
+        resp_list.append("\n\n")
+        resp_list.append(html2slack(answer_body))
+
+    return Response("".join(resp_list),
+                    content_type='text/plain; charset=utf-8')
+
+
 @app.route('/overflow', methods=['post'])
 def overflow():
     '''
     Example:
         /overflow python list comprehension
     '''
-    question_regex = re.compile('^/questions/(\d+)/')
-
-    def get_question_nid(match):
-        """Returns the Question ID given a match from the URL"""
-        if match is None:
-            return None
-        return int(match.groups()[0])
-
     # Get objects on the application context pushed on startup
     max_questions = flask._app_ctx_stack.max_questions
     so = flask._app_ctx_stack.so
@@ -39,23 +82,18 @@ def overflow():
 
     resp_qs = ['Stack Overflow Top Questions for "%s"\n' % text]
     # Perform google search
-    sr = search(
-        "site:stackoverflow.com/questions/* {}".format(text),
-        pages=pages
-    )
+    sr = google_search_stackoverflow_query(text, pages=pages)
     # Extract each question nid from results
     so_qnids = []
     for result in sr:
-        purl = urlparse(result.link)
-        assert purl.netloc.endswith('stackoverflow.com'), \
-            "Non-StackOverflow result {}; search is broken!"\
-            .format(result.link)
-        qnid = get_question_nid(question_regex.match(purl.path))
+        qnid = extract_question_nid_from_url(result.link)
         if qnid is not None:
             so_qnids.append(qnid)
         else:
             logging.warning("Found invalid URL in search: "
                             "{}".format(result.link))
+    if not so_qnids:
+        return "*No questions for the given query were found! :(*"
     # Fetch Questions using SO API
     so_qs = so.questions(so_qnids)
     # Sort Questions by score
