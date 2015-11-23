@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 
+import logging
 import os
 
 import click
@@ -17,15 +18,19 @@ from slack_overflow.util import envvar
               type=click.INT)
 @click.option('--se-key', default=envvar('SE_KEY', ''),
               type=click.STRING)
-@click.option('--debug', is_flag=True,
-              default=lambda: os.environ.get('FLASK_DEBUG') == '1')
+@click.option('--debug', is_flag=True)
 def main(port, max_questions, se_key, debug):
+    if se_key:
+        logging.warning("Using SE_KEY {}".format(se_key))
     so = Site(
         domain=StackOverflow,
         app_key=se_key if se_key else None
     )
 
-    app.debug = debug
+    if os.environ.get('FLASK_DEBUG') == '1':
+        app.debug = True
+    else:
+        app.debug = debug
     if app.debug:
         print("WARNING: DEBUG MODE IS ENABLED!")
     app.config["PROPAGATE_EXCEPTIONS"] = True
