@@ -1,5 +1,8 @@
 import re
-from urlparse import urlparse
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 
 from stackexchange import Site
 from stackexchange import Question
