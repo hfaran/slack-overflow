@@ -28,7 +28,7 @@ in pristine\* Slack formatting.
 3. Scroll all the way down to **DIY Integrations & Customizations section**.
 4. Click on **Add** next to **Slash Commands**.
   - Command: `/overflow`
-  - URL: `<URL of wherever you have deployed the app>`
+  - URL: `<URL of wherever you have deployed the app>/overflow`, there is a test instance always online at `https://lit-depths-6053.herokuapp.com/`, so you can provide `https://lit-depths-6053.herokuapp.com/overflow`
   - Method: `POST`
   - For the **Autocomplete help text**, check to show the command in autocomplete list.
     - Description: `A programmer's best friend, now in Slack.`
