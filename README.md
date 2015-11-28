@@ -1,6 +1,7 @@
 # slack-overflow
 
 [![Build Status](https://travis-ci.org/hfaran/slack-overflow.svg?branch=develop)](https://travis-ci.org/hfaran/slack-overflow)
+[![Coverage Status](https://coveralls.io/repos/hfaran/slack-overflow/badge.svg?branch=develop&service=github)](https://coveralls.io/github/hfaran/slack-overflow?branch=develop)
 
 A programmer's best friend, now in Slack. Search StackOverflow right from Slack without coming off as dumb.
 
