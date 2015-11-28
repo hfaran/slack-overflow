@@ -107,7 +107,7 @@ def overflow():
 
 @app.route('/')
 def hello():
-    return redirect('https://github.com/karan/slack-overflow')
+    return redirect('https://github.com/hfaran/slack-overflow')
 
 
 ###########
