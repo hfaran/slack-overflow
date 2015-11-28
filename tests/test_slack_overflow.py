@@ -1,3 +1,4 @@
+import json
 import unittest
 
 import flask
@@ -71,3 +72,8 @@ class TestSlackOverflowFunctional(unittest.TestCase):
         rv = self.app.get('/')
         print(rv.data)
         assert all(term in rv.data for term in ("Redirecting", "github"))
+
+    def test__version(self):
+        rv = self.app.get('/version')
+        print(rv.data)
+        assert json.loads(rv.data)["version"] == slack_overflow.__version__
