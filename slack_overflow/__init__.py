@@ -9,6 +9,8 @@ from slack_overflow.stackoverflow import get_question_top_answer_body
 from slack_overflow.html2slack import html2slack
 
 
+__version__ = "0.1.0"
+
 app = Flask(__name__)
 
 
@@ -108,6 +110,11 @@ def overflow():
 @app.route('/')
 def hello():
     return redirect('https://github.com/hfaran/slack-overflow')
+
+
+@app.route('/version')
+def version():
+    return flask.jsonify(**{"version": __version__})
 
 
 ###########
