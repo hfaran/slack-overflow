@@ -1,12 +1,25 @@
 # slack-overflow
 
+[![Build Status](https://travis-ci.org/hfaran/slack-overflow.svg?branch=develop)](https://travis-ci.org/hfaran/slack-overflow)
+[![Coverage Status](https://coveralls.io/repos/hfaran/slack-overflow/badge.svg?branch=develop&service=github)](https://coveralls.io/github/hfaran/slack-overflow?branch=develop)
+
 A programmer's best friend, now in Slack. Search StackOverflow right from Slack without coming off as dumb.
 
 ![](http://i.imgur.com/c9HuKw8.gif)
 
+
 ## Usage
 
+### Top Questions
+
 From any Slack channel, just type `/overflow [search terms]`. The questions will be shown on the same channel visible just to you.
+
+### Top Answer
+
+To get the top answer for a question, type `/soi [search terms]`. The answer
+top answer for the top question will be fetched and rendered to you
+in pristine\* Slack formatting.
+
 
 ## Integrate with your team
 
@@ -15,12 +28,15 @@ From any Slack channel, just type `/overflow [search terms]`. The questions will
 3. Scroll all the way down to **DIY Integrations & Customizations section**.
 4. Click on **Add** next to **Slash Commands**.
   - Command: `/overflow`
-  - URL: `http://so.goel.io/overflow`
+  - URL: `<URL of wherever you have deployed the app>/overflow`, there is a test instance always online at `https://lit-depths-6053.herokuapp.com/`, so you can provide `https://lit-depths-6053.herokuapp.com/overflow`
   - Method: `POST`
   - For the **Autocomplete help text**, check to show the command in autocomplete list.
     - Description: `A programmer's best friend, now in Slack.`
     - Usage hint: `[search terms]`
   - Descriptive Label: `Search StackOverflow`
+
+For integrating `/soi`, follow the same steps, but use `/soi` for the command
+and URL route instead.
 
 ## Developing
 
@@ -48,4 +64,4 @@ You will need to set the `SE_KEY` environment variable in your heroku app in ord
 
 ## Contributing
 
-- Please use the [issue tracker](https://github.com/karan/slack-overflow/issues) to report any bugs or file feature requests.
+- Please use the [issue tracker](https://github.com/hfaran/slack-overflow/issues) to report any bugs or file feature requests.
