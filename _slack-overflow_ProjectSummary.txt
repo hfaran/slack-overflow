@@ -1,0 +1,13 @@
+We wanted to improve the search functionality, add environment variables, and add an in-line answer feature. We also added test suites and continuous integration.
+
+IMPROVEMENT 1: SEARCH FUNCTIONALITY
+  - Files: app.py, slack_overflow/__init__.py, slack_overflow/google_search.py,
+  
+FEATURE 1: ENVIRONMENT VARIABLES
+  - Files: app.py, slack_overflow/util.py
+
+FEATURE 2: IN-LINE ANSWER
+  - Files: app.py, slack_overflow/__init__.py, slack_overflow/html2slack.py, slack_overflow/stackoverflow.py, 
+  
+FEATURE 3: TESTING AND CONTINUOUS INTEGRATION
+  - Files: tests/test_slack_overflow.py, tests/test_google_search.py, tests/test_util.py, tests/test_html2slack.py, tests/test_stackoverflow.py, .travis.yml, README.md
